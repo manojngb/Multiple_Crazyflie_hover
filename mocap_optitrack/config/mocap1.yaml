@@ -4,13 +4,13 @@
 #pose and pose2d not used
 
 rigid_bodies:
-    '4':
+    '1':
         #pose: crazyflie/base_link_mocap
         #pose2d: crazyflie/ground_pose_mocap
         child_frame_id: mocap/crazyflie1
         parent_frame_id: world
 
-    '3':
+    '2':
         #pose: crazyflie/base_link_mocap
         #pose2d: crazyflie/ground_pose_mocap
         child_frame_id: mocap/crazyflie2

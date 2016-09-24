@@ -229,7 +229,7 @@ private:
                 std::cout << "zerror          " << m_pidZ.error()  << "msg.linear.z  " << msg.linear.z << std::endl;
                 m_pidYaw.update(0.0, yaw);
                 std::cout << "zyaw          " << m_pidYaw.error()<< "   msg.angular.z     " << msg.angular.z <<  std::endl;
-                msg.angular.z =0;
+                //msg.angular.z =0;
                 m_pubNav.publish(msg);
                 
 

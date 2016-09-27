@@ -12,7 +12,7 @@
   <arg name="frame2" default="mocap/crazyflie2" />
   <arg name="x2" default="0" />
   <arg name="y2" default="0" />
-  <arg name="z2" default="1.2" />
+  <arg name="z2" default="1" />
 
   <include file="$(find crazyflie_driver)/launch/crazyflie_server.launch">
 <!--     <arg name="crazyflieSDK" value="$(arg crazyflieSDK)" /> -->
@@ -55,7 +55,7 @@
     <include file="$(find crazyflie_driver)/launch/crazyflie_add.launch">
       <arg name="uri" value="$(arg uri2)" />
       <arg name="tf_prefix" value="crazyflie2" />
-      <arg name="enable_logging" value="True" />
+      <arg name="enable_logging" value="False" />
     </include>
 
    <!-- <node name="joystick_controller" pkg="crazyflie_demo" type="controller.py" output="screen">

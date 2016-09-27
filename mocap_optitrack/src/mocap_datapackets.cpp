@@ -24,19 +24,19 @@ const geometry_msgs::PoseStamped RigidBody::get_ros_pose()
   ros_pose.pose.position.x = pose.position.x;
   ros_pose.pose.position.y = pose.position.y;
   ros_pose.pose.position.z = pose.position.z;
-  //ros_pose.pose.orientation.x = pose.orientation.x;
-  //ros_pose.pose.orientation.y = pose.orientation.y;
-  //ros_pose.pose.orientation.z = pose.orientation.z;
-  //ros_pose.pose.orientation.w = pose.orientation.w;
+  ros_pose.pose.orientation.x = pose.orientation.x;
+  ros_pose.pose.orientation.y = pose.orientation.y;
+  ros_pose.pose.orientation.z = pose.orientation.z;
+  ros_pose.pose.orientation.w = pose.orientation.w;
 
   //ros_pose.pose.position.x = pose.position.x;
   //ros_pose.pose.position.y = -pose.position.z;
   //ros_pose.pose.position.z = pose.position.y;
   
-  ros_pose.pose.orientation.x= 0;//(pose.orientation.x+pose.orientation.w)*0.707107;
-  ros_pose.pose.orientation.y= 0;//(pose.orientation.y-pose.orientation.z)*0.707107;
-  ros_pose.pose.orientation.z= 0;//(pose.orientation.z+pose.orientation.y)*0.707107;
-  ros_pose.pose.orientation.w= 1;//(pose.orientation.w-pose.orientation.x)*0.707107;
+  //ros_pose.pose.orientation.x= 0;//(pose.orientation.x+pose.orientation.w)*0.707107;
+  //ros_pose.pose.orientation.y= 0;//(pose.orientation.y-pose.orientation.z)*0.707107;
+  //ros_pose.pose.orientation.z= 0;//(pose.orientation.z+pose.orientation.y)*0.707107;
+  //ros_pose.pose.orientation.w= 1;//(pose.orientation.w-pose.orientation.x)*0.707107;
 
 
   return ros_pose;

@@ -146,7 +146,7 @@ private:
             {
                 tf::StampedTransform transform;
                 m_listener.lookupTransform(m_worldFrame, m_frame, ros::Time(0), transform);
-                if (transform.getOrigin().z() > m_startZ + 0.15 || m_thrust > 45000)
+                if (transform.getOrigin().z() > m_startZ + 0.15 || m_thrust > 44000 )
                 {
                     pidReset();
                     m_pidZ.setIntegral(m_thrust / m_pidZ.ki());
@@ -154,17 +154,38 @@ private:
                     ROS_INFO("changed to auto!");
                     if (m_thrust > 45000)
                         ROS_INFO("m_thrust 45000!!");
-                    m_thrust = 45000;
                 }
                 else
                 {
-                    m_thrust += 40000 * dt;
-                    std::cout << " takeoff thrsut  " << m_thrust << std::endl;
+                    if (m_thrust < 44000) {
+                        m_thrust += 40000 * dt;
+                    }
+                   
+                    std::cout << " takeoff thrust  " << m_thrust << std::endl;
                     geometry_msgs::Twist msg;
                     msg.linear.x = m_pidX.bias();
                     msg.linear.y = m_pidY.bias();
                     msg.linear.z = m_thrust;
+                    tf::Vector3 position = transform.getOrigin();
+                    geometry_msgs::PoseStamped targetWorld;
+                    targetWorld.header.stamp = transform.stamp_;
+                    targetWorld.header.frame_id = m_worldFrame;
+                    targetWorld.pose = m_goal.pose;
+                    geometry_msgs::PoseStamped targetDrone;
+                    m_listener.transformPose(m_frame, targetWorld, targetDrone);
+                    tfScalar roll, pitch, yaw;
+                    tf::Matrix3x3(
+                        tf::Quaternion(
+                            targetDrone.pose.orientation.x,
+                            targetDrone.pose.orientation.y,
+                            targetDrone.pose.orientation.z,
+                            targetDrone.pose.orientation.w
+                        )).getRPY(roll, pitch, yaw);
+                    msg.angular.z = m_pidYaw.update(yaw, 0);
+                    //msg.angular.z = -20;
+                    std::cout << "yaw _ takeoff               " << yaw  << " msg.angular.z     " << msg.angular.z <<  std::endl;
                     m_pubNav.publish(msg);
+ 
                 }
 
             }
@@ -173,32 +194,33 @@ private:
             {   
                 //my lines
                 geometry_msgs::Twist msg;
-               // msg.linear.x = 0;
-                //msg.linear.y = 0;
-                //msg.linear.z = 35000;
-                //msg.angular.z = 0;
-                //m_pubNav.publish(msg);
-                ROS_INFO("landed1!");
-                //m_state = Idle;
-                ///
-                m_goal.pose.position.z = m_startZ + 0.1;
+                ROS_INFO("landing received!");
                 tf::StampedTransform transform;
                 m_listener.lookupTransform(m_worldFrame, m_frame, ros::Time(0), transform);
-                if (transform.getOrigin().z() <= m_startZ + 0.05) {
+                if (transform.getOrigin().z() <= 0.15 || m_thrust < 12000) {
                     m_state = Idle;
-                    ROS_INFO("landed2!");
-                    geometry_msgs::Twist msg;
+                    msg.linear.z = 0;
                     m_pubNav.publish(msg);
                 }
-                msg.linear.z = 0;
-                m_pubNav.publish(msg);
-                ROS_INFO("landed3!");
+                else{
+                    msg.linear.x = 0;
+                    msg.linear.y = 0;
+                    msg.linear.z = m_thrust;
+                    msg.angular.z = 0;
+                    m_pubNav.publish(msg);
+                    std::cout << " m_thrust_land    " << m_thrust<<  std::endl;
+                    m_thrust -= 40000 * dt;
+                }
+                ROS_INFO("landed through landmode!");
+                
             }
+            break;
             // No break; intentional fall-thru
         case Automatic:
             {
                 tf::StampedTransform transform;
                 m_listener.lookupTransform(m_worldFrame, m_frame, ros::Time(0), transform);
+                tf::Vector3 position = transform.getOrigin();
                 geometry_msgs::PoseStamped targetWorld;
                 targetWorld.header.stamp = transform.stamp_;
                 targetWorld.header.frame_id = m_worldFrame;
@@ -214,27 +236,27 @@ private:
                         targetDrone.pose.orientation.w
                     )).getRPY(roll, pitch, yaw);
                 geometry_msgs::Twist msg;
-                float xerror;
-                float yerror;
-                xerror=m_pidX.error();
-                yerror=m_pidY.error();
+
                 //std::cout << "mocap: x  " << a.position.x  << "   y " << a.position.y <<  "   z " << a.position.z << std::endl;
                 
                 //std::cout << "x  " << targetDrone.pose.position.x  << "   y " << targetDrone.pose.position.y <<  "   z " << targetDrone.pose.position.z << std::endl;
-                msg.linear.x  = m_pidX.update(0.0, targetDrone.pose.position.x);
-                std::cout << "xerror  " <<xerror   << "        msg.linear.x  " << msg.linear.x << std::endl;
-                msg.linear.y = m_pidY.update(0.0, targetDrone.pose.position.y);
-                std::cout << "yerror      " << yerror << "    msg.linear.y        " << msg.linear.y << std::endl;
-                msg.linear.z = m_pidZ.update(0.0, targetDrone.pose.position.z);
-                std::cout << "zerror          " << m_pidZ.error()  << "msg.linear.z  " << msg.linear.z << std::endl;
-                m_pidYaw.update(0.0, yaw);
-                std::cout << "zyaw          " << m_pidYaw.error()<< "   msg.angular.z     " << msg.angular.z <<  std::endl;
-                //msg.angular.z =0;
+                msg.linear.x  = m_pidX.update(position.getX(),m_goal.pose.position.x);
+                std::cout << "x_pos  " <<  position.getX() << " msg.linear.x  " << msg.linear.x << std::endl;
+                msg.linear.y = m_pidY.update(position.getY(), m_goal.pose.position.y);
+                std::cout << "y_pos     " << position.getY() << "    msg.linear.y        " << msg.linear.y << std::endl;
+                msg.linear.z = m_pidZ.update(position.getZ(), m_goal.pose.position.z);
+                std::cout << "z_pos          " << position.getZ() << "msg.linear.z  " << msg.linear.z << std::endl;
+                msg.angular.z = m_pidYaw.update(yaw, 0);
+                std::cout << "yaw                " << yaw  << " msg.angular.z     " << msg.angular.z <<  std::endl;
                 m_pubNav.publish(msg);
+               
                 
-
-
+             
+                
             }
+
+
+            
             break;
         case Idle:
             {
@@ -286,7 +308,7 @@ int main(int argc, char **argv)
   //n.param<std::string>("frame", frame, "/mocap/crazyflie1");
   n.getParam("frame", frame);
   double frequency;
-  n.param("frequency", frequency, 25.0);
+  n.param("frequency", frequency, 60.0);
 
   Controller controller(worldFrame, frame, n);
   controller.run(frequency);
